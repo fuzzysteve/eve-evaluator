@@ -78,7 +78,7 @@ foreach ($entries as $entry)
            }
        }
     }
-   if (preg_match("/^(.*)\t([\d.,]+)\t/",trim($entry),$matches))
+   else if (preg_match("/^(.*)\t([\d.,]+)\t/",trim($entry),$matches))
    {
        if(isset($typeidlookup[$matches[1]]))
        {
@@ -95,6 +95,70 @@ foreach ($entries as $entry)
            }
        }
     }
+    else if (preg_match("/^\[(.*),.*]/",trim($entry),$matches))
+   {
+       if(isset($typeidlookup[$matches[1]]))
+       {
+           $quantity=1;
+           if(isset($inventory[$typeidlookup[$matches[1]]]))
+           {
+               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+           }
+           else
+           {
+               $inventory[$typeidlookup[$matches[1]]]=$quantity;
+           }
+       }
+    }
+    else if (preg_match("/^(.*), Qty: (\d+)/",trim($entry),$matches))
+   {
+       if(isset($typeidlookup[$matches[1]]))
+       {
+           $quantity=$matches[2];
+           if(isset($inventory[$typeidlookup[$matches[1]]]))
+           {
+               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+           }
+           else
+           {
+               $inventory[$typeidlookup[$matches[1]]]=$quantity;
+           }
+       }
+    }
+    else if (preg_match("/^.*\t(.*)\t.*/",trim($entry),$matches))
+   {
+       if(isset($typeidlookup[$matches[1]]))
+       {
+           $quantity=1;
+           if(isset($inventory[$typeidlookup[$matches[1]]]))
+           {
+               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+           }
+           else
+           {
+               $inventory[$typeidlookup[$matches[1]]]=$quantity;
+           }
+       }
+    }
+
+    else if (preg_match("/^(.*)/",trim($entry),$matches))
+   {
+       if(isset($typeidlookup[$matches[1]]))
+       {
+           $quantity=1;
+           if(isset($inventory[$typeidlookup[$matches[1]]]))
+           {
+               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+           }
+           else
+           {
+               $inventory[$typeidlookup[$matches[1]]]=$quantity;
+           }
+       }
+    }
+
+
+
 
 
 
@@ -144,7 +208,7 @@ $(document).ready(function()
             "bFilter": false,
             "bInfo": false,
             "bAutoWidth": false,
-            "aoColumns":[null,null,{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" }]
+            "aoColumns":[null,null,{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" }]
 });
     }
 );
@@ -153,7 +217,7 @@ $(document).ready(function()
 <body>
 <table border=1 id="evaluation" class="tablesorter">
 <thead>
-<tr><th>id</th><th>Name</th><th>Quantity</th><th>Volume</th><th>ISK/m3</th><th>total value</th></tr>
+<tr><th>id</th><th>Name</th><th>Quantity</th><th>Volume</th><th>ISK/m3</th><th>PPU</th><th>total value</th></tr>
 </thead>
 <tbody>
 <?
@@ -169,7 +233,7 @@ while ($row = $stmt->fetchObject()){
 $pricedata=$memcache->get($region.$buysell.'-'.$row->typeid);
 $values=explode("|",$pricedata);
 $price=$values[0];
-echo "<tr><td>".$row->typeid."</td><td>".$row->typename."</td><td align=right>".number_format($inventory[$row->typeid])."</td><td align=right>".number_format($row->volume*$inventory[$row->typeid],2)."</td><td align=right>".number_format($price/$row->volume,2)."</td><td align=right>".number_format($inventory[$row->typeid]*$price,2)."</td></tr>";
+echo "<tr><td>".$row->typeid."</td><td>".$row->typename."</td><td align=right>".number_format($inventory[$row->typeid])."</td><td align=right>".number_format($row->volume*$inventory[$row->typeid],2)."</td><td align=right>".number_format($price/$row->volume,2)."</td><td align=right>".number_format($price,2)."</td><td align=right>".number_format($inventory[$row->typeid]*$price,2)."</td></tr>";
 $total+=$inventory[$row->typeid]*$price;
 $totalvolume+=$row->volume*$inventory[$row->typeid];
 }
@@ -180,7 +244,7 @@ $totalvolume+=$row->volume*$inventory[$row->typeid];
 
 </tbody>
 <tfoot>
-<tr><th colspan=2>Totals</th><th></th><th><? echo number_format($totalvolume,2);?></th><th></th><th><? echo number_format($total,2);?></th></tr>
+<tr><th colspan=2>Totals</th><th></th><th><? echo number_format($totalvolume,2);?></th><th colspan=2></th><th><? echo number_format($total,2);?></th></tr>
 </tfoot>
 </table>
 
