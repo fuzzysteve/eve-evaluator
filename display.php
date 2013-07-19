@@ -44,10 +44,11 @@ echo "No Entries provided";
 exit;
 }
 
-$memcache = new Memcache;
-$memcache->connect('localhost', 11211) or die ("Could not connect");
+$pricetype='redis';
+#$pricetype='memcache';
+#$pricetype='marketdata';
 
-
+require_once($pricetype.'price.php');
 
 $sql='select typename,typeid from invTypes where invTypes.published=1 and marketgroupid is not null';
 
@@ -179,11 +180,11 @@ foreach ($entries as $entry)
 <html>
 <head>
 <title></title>
-  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  <link href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
-  <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
+  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <link href="//ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="//ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
 <script>
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {
     "currency-pre": function ( a ) {
@@ -229,10 +230,8 @@ $stmt->execute();
 $total=0;
 $totalvolume=0;
 while ($row = $stmt->fetchObject()){
-
-$pricedata=$memcache->get($region.$buysell.'-'.$row->typeid);
-$values=explode("|",$pricedata);
-$price=$values[0];
+list($price,$buyprice)=returnprice($row->typeid,$region);
+if ($buysell=='buy'){$price=$buyprice;}
 echo "<tr><td>".$row->typeid."</td><td>".$row->typename."</td><td align=right>".number_format($inventory[$row->typeid])."</td><td align=right>".number_format($row->volume*$inventory[$row->typeid],2)."</td><td align=right>".number_format($price/$row->volume,2)."</td><td align=right>".number_format($price,2)."</td><td align=right>".number_format($inventory[$row->typeid]*$price,2)."</td></tr>";
 $total+=$inventory[$row->typeid]*$price;
 $totalvolume+=$row->volume*$inventory[$row->typeid];
