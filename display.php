@@ -1,4 +1,6 @@
 <?php
+
+
 require_once('db.inc.php');
 
 
@@ -18,7 +20,7 @@ if (array_key_exists('region',$_POST) && is_numeric($_POST['region']))
 {
     $regionid=$_POST['region'];
 }
-else if (array_key_exists('corpid',$_GET) &&is_numeric($_GET['region']))
+else if (array_key_exists('region',$_GET) &&is_numeric($_GET['region']))
 {
     $regionid=$_GET['region'];
 }
@@ -36,13 +38,21 @@ else
 
 if (array_key_exists('entries',$_POST))
 {
-$entries=explode("\n",$_POST['entries']);
+    $entries=explode("\n",$_POST['entries']);
 }
 else
 {
-echo "No Entries provided";
-exit;
+    if (array_key_exists('entries',$_GET))
+    {
+        $entries=explode("\n",$_GET['entries']);
+    }
+    else
+    {
+        echo "No Entries provided";
+        exit;
+    }
 }
+
 
 $pricetype='redis';
 #$pricetype='memcache';
@@ -179,11 +189,12 @@ foreach ($entries as $entry)
 ?>
 <html>
 <head>
-<title></title>
-  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<title>Evaluator</title>
+  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+
   <link href="//ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" rel="stylesheet" type="text/css"/>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
   <script type="text/javascript" src="//ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
 <script>
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {
@@ -214,8 +225,16 @@ $(document).ready(function()
     }
 );
 </script>
+
+<?php include('/home/web/fuzzwork/htdocs/bootstrap/header.php'); ?>
 </head>
 <body>
+<?php include('/home/web/fuzzwork/htdocs/menu/menubootstrap.php'); ?>
+<div class="container">
+
+
+
+
 <table border=1 id="evaluation" class="tablesorter">
 <thead>
 <tr><th>id</th><th>Name</th><th>Quantity</th><th>Volume</th><th>ISK/m3</th><th>PPU</th><th>total value</th></tr>
@@ -247,7 +266,8 @@ $totalvolume+=$row->volume*$inventory[$row->typeid];
 </tfoot>
 </table>
 
-<?php include('/home/web/fuzzwork/analytics.php'); ?>
+</div>
+<?php include('/home/web/fuzzwork/htdocs/bootstrap/footer.php'); ?>
 
 </body>
 </html>
