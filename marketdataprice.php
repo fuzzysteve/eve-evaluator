@@ -1,10 +1,13 @@
 <?php
 
 
-function returnprice($typeid=34,$regionid='forge')
+function returnprice($typeid=34,$regionid=10000002)
 {
+        if ($regionid=='forge') {
+                $regionid=10000002;
+        }
 
-        $url="http://api.eve-marketdata.com/api/item_prices2.xml?char_name=steveronuken&buysell=a&type_ids=".$typeid;
+        $url="http://api.eve-marketdata.com/api/item_prices2.xml?char_name=demo&buysell=a&regionids=".$regionid."&type_ids=".$typeid;
         $pricexml=file_get_contents($url);
         $xml=new SimpleXMLElement($pricexml);
         $price= (float) $xml->result->rowset->row['price'][0];
