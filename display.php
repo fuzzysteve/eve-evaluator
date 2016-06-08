@@ -3,51 +3,40 @@
 
 require_once('db.inc.php');
 
+$compact=0;
 
-
-if (array_key_exists('method',$_POST) && is_numeric($_POST['method']) && $_POST['method'])
-{
-    $buysell="buy";
+if (isset($_COOKIE['compacteval'])&& $_COOKIE['compacteval']==1) {
+    $compact=1;
 }
-else
-{
+
+if (array_key_exists('method', $_POST) && is_numeric($_POST['method']) && $_POST['method']) {
+    $buysell="buy";
+} else {
     $buysell="sell";
 }
 
 
 $regionid=10000002;
-if (array_key_exists('region',$_POST) && is_numeric($_POST['region']))
-{
+if (array_key_exists('region', $_POST) && is_numeric($_POST['region'])) {
     $regionid=$_POST['region'];
-}
-else if (array_key_exists('region',$_GET) &&is_numeric($_GET['region']))
-{
+} elseif (array_key_exists('region', $_GET) &&is_numeric($_GET['region'])) {
     $regionid=$_GET['region'];
 }
 
-if ($regionid==10000002)
-{
+if ($regionid==10000002) {
     $region="forge";
-}
-else
-{
+} else {
     $region=$regionid;
 }
 
 
 
-if (array_key_exists('entries',$_POST))
-{
-    $entries=explode("\n",$_POST['entries']);
-}
-else
-{
-    if (array_key_exists('entries',$_GET))
-    {
-        $entries=explode("\n",$_GET['entries']);
-    }
-    else
-    {
+if (array_key_exists('entries', $_POST)) {
+    $entries=explode("\n", $_POST['entries']);
+} else {
+    if (array_key_exists('entries', $_GET)) {
+        $entries=explode("\n", $_GET['entries']);
+    } else {
         echo "No Entries provided";
         exit;
     }
@@ -66,124 +55,77 @@ $stmt = $dbh->prepare($sql);
 
 $stmt->execute();
 $typeidlookup=array();
-while ($row = $stmt->fetchObject()){
-$typeidlookup[$row->typename]=$row->typeid;
+while ($row = $stmt->fetchObject()) {
+    $typeidlookup[$row->typename]=$row->typeid;
 }
 
 
 $inventory=array();
 
-foreach ($entries as $entry)
-{
-   if (preg_match("/^(\d+) (.*)$/",trim($entry),$matches))
-   {
-       if(isset($typeidlookup[$matches[2]]))
-       {
-           if(isset($inventory[$typeidlookup[$matches[2]]]))
-           {
-               $inventory[$typeidlookup[$matches[2]]]+=$matches[1];
-           }
-           else
-           {
-               $inventory[$typeidlookup[$matches[2]]]=$matches[1];
-           }
-       }
+foreach ($entries as $entry) {
+    if (preg_match("/^(30 Day Pilot.*)\t(\d+)\t(.*)$/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[1]])) {
+            if (isset($inventory[$typeidlookup[$matches[1]]])) {
+                $inventory[$typeidlookup[$matches[1]]]+=$matches[2];
+            } else {
+                $inventory[$typeidlookup[$matches[1]]]=$matches[2];
+            }
+        }
+    } elseif (preg_match("/^(\d+) (.*)$/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[2]])) {
+            if (isset($inventory[$typeidlookup[$matches[2]]])) {
+                $inventory[$typeidlookup[$matches[2]]]+=$matches[1];
+            } else {
+                $inventory[$typeidlookup[$matches[2]]]=$matches[1];
+            }
+        }
+    } elseif (preg_match("/^(.*)\t([\d.,]+)\t/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[1]])) {
+            $quantity=str_replace(',', '', str_replace(',', '', $matches[2]));
+            if (isset($inventory[$typeidlookup[$matches[1]]])) {
+                $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+            } else {
+                $inventory[$typeidlookup[$matches[1]]]=$quantity;
+            }
+        }
+    } elseif (preg_match("/^\[(.*),.*]/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[1]])) {
+            $quantity=1;
+            if (isset($inventory[$typeidlookup[$matches[1]]])) {
+                $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+            } else {
+                $inventory[$typeidlookup[$matches[1]]]=$quantity;
+            }
+        }
+    } elseif (preg_match("/^(.*), Qty: (\d+)/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[1]])) {
+            $quantity=$matches[2];
+            if (isset($inventory[$typeidlookup[$matches[1]]])) {
+                $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+            } else {
+                $inventory[$typeidlookup[$matches[1]]]=$quantity;
+            }
+        }
+    } elseif (preg_match("/^.*\t(.*)\t.*/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[1]])) {
+            $quantity=1;
+            if (isset($inventory[$typeidlookup[$matches[1]]])) {
+                $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+            } else {
+                $inventory[$typeidlookup[$matches[1]]]=$quantity;
+            }
+        }
+    } elseif (preg_match("/^(.*)/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[1]])) {
+            $quantity=1;
+            if (isset($inventory[$typeidlookup[$matches[1]]])) {
+                $inventory[$typeidlookup[$matches[1]]]+=$quantity;
+            } else {
+                $inventory[$typeidlookup[$matches[1]]]=$quantity;
+            }
+        }
     }
-   else if (preg_match("/^(.*)\t([\d.,]+)\t/",trim($entry),$matches))
-   {
-       if(isset($typeidlookup[$matches[1]]))
-       {
-
-
-           $quantity=str_replace(',','',str_replace(',','',$matches[2]));
-           if(isset($inventory[$typeidlookup[$matches[1]]]))
-           {
-               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
-           }
-           else
-           {
-               $inventory[$typeidlookup[$matches[1]]]=$quantity;
-           }
-       }
-    }
-    else if (preg_match("/^\[(.*),.*]/",trim($entry),$matches))
-   {
-       if(isset($typeidlookup[$matches[1]]))
-       {
-           $quantity=1;
-           if(isset($inventory[$typeidlookup[$matches[1]]]))
-           {
-               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
-           }
-           else
-           {
-               $inventory[$typeidlookup[$matches[1]]]=$quantity;
-           }
-       }
-    }
-    else if (preg_match("/^(.*), Qty: (\d+)/",trim($entry),$matches))
-   {
-       if(isset($typeidlookup[$matches[1]]))
-       {
-           $quantity=$matches[2];
-           if(isset($inventory[$typeidlookup[$matches[1]]]))
-           {
-               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
-           }
-           else
-           {
-               $inventory[$typeidlookup[$matches[1]]]=$quantity;
-           }
-       }
-    }
-    else if (preg_match("/^.*\t(.*)\t.*/",trim($entry),$matches))
-   {
-       if(isset($typeidlookup[$matches[1]]))
-       {
-           $quantity=1;
-           if(isset($inventory[$typeidlookup[$matches[1]]]))
-           {
-               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
-           }
-           else
-           {
-               $inventory[$typeidlookup[$matches[1]]]=$quantity;
-           }
-       }
-    }
-
-    else if (preg_match("/^(.*)/",trim($entry),$matches))
-   {
-       if(isset($typeidlookup[$matches[1]]))
-       {
-           $quantity=1;
-           if(isset($inventory[$typeidlookup[$matches[1]]]))
-           {
-               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
-           }
-           else
-           {
-               $inventory[$typeidlookup[$matches[1]]]=$quantity;
-           }
-       }
-    }
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
 
 
 ?>
@@ -212,7 +154,7 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
     }
 } );
 
-
+<?php if (!$compact) {?>
 $(document).ready(function()
     {
         var oTable = $("#evaluation").dataTable({
@@ -224,34 +166,67 @@ $(document).ready(function()
 });
     }
 );
+<?php
+} else {
+?>
+
+$(document).ready(function()
+    {
+        var oTable = $("#evaluation").dataTable({
+           "bPaginate": false,
+            "bFilter": false,
+            "bInfo": false,
+            "bAutoWidth": false,
+            "aoColumns":[null,{ "sType": "currency" },{ "sType": "currency" }]
+});
+    }
+);
+
+
+
+
+
+
+<?php } ?>
 </script>
 
-<?php include('/home/web/fuzzwork/htdocs/bootstrap/header.php'); ?>
+<?php if (!$compact){include('/home/web/fuzzwork/htdocs/bootstrap/header.php');} ?>
 </head>
 <body>
-<?php include('/home/web/fuzzwork/htdocs/menu/menubootstrap.php'); ?>
+<?php if (!$compact){include('/home/web/fuzzwork/htdocs/menu/menubootstrap.php');} ?>
 <div class="container">
 
 
 
 
-<table border=1 id="evaluation" class="tablesorter">
+<table border=1 id="evaluation" class="tablesorter"  <?php if ($compact){echo 'style="width:auto !important;""';  } ?>>
 <thead>
-<tr><th>id</th><th>Name</th><th>Quantity</th><th>Volume</th><th>ISK/m3</th><th>PPU</th><th>total value</th></tr>
+<?php if (!$compact){?>
+<tr><th>id</th><th>Name</th><th>Quantity</th><th>Volume</th><th>ISK/m3</th><th>PPU</th><th>total value</th><th>Price Data as of</th></tr>
+<?php } else {?>
+<tr><th>Name</th><th>Quantity</th><th>total value</th></tr>
+<?php }?>
 </thead>
 <tbody>
-<?
-$sql='select typename,typeid,volume from invTypes where typeid in ('.join(",",array_keys($inventory)).') order by typename desc';
+<?php
+$sql='select typename,typeid,volume from invTypes where typeid in ('.join(",", array_keys($inventory)).') order by typename desc';
 
 $stmt = $dbh->prepare($sql);
 
 $stmt->execute();
 $total=0;
 $totalvolume=0;
-while ($row = $stmt->fetchObject()){
-list($price,$buyprice)=returnprice($row->typeid,$region);
-if ($buysell=='buy'){$price=$buyprice;}
-echo "<tr><td>".$row->typeid."</td><td>".$row->typename."</td><td align=right>".number_format($inventory[$row->typeid])."</td><td align=right>".number_format($row->volume*$inventory[$row->typeid],2)."</td><td align=right>".number_format($price/$row->volume,2)."</td><td align=right>".number_format($price,2)."</td><td align=right>".number_format($inventory[$row->typeid]*$price,2)."</td></tr>";
+while ($row = $stmt->fetchObject()) {
+    list($price, $buyprice,$selldate,$buydate)=returnpricedate($row->typeid,$region);
+    if ($buysell=='buy'){
+        $price=$buyprice;
+        $selldate=$buydate;
+    }
+    if (!$compact) {
+        echo "<tr><td>".$row->typeid."</td><td>".$row->typename."</td><td align=right>".number_format($inventory[$row->typeid])."</td><td align=right>".number_format($row->volume*$inventory[$row->typeid],2)."</td><td align=right>".number_format($price/$row->volume,2)."</td><td align=right>".number_format($price,2)."</td><td align=right>".number_format($inventory[$row->typeid]*$price,2)."</td><td>".$selldate."</td></tr>";
+} else {
+    echo "<tr><td>".$row->typename."</td><td align=right>".number_format($inventory[$row->typeid])."</td><td align=right>".number_format($inventory[$row->typeid]*$price,2)."</td></tr>";
+}
 $total+=$inventory[$row->typeid]*$price;
 $totalvolume+=$row->volume*$inventory[$row->typeid];
 }
@@ -262,12 +237,16 @@ $totalvolume+=$row->volume*$inventory[$row->typeid];
 
 </tbody>
 <tfoot>
+<?php if (!$compact){?>
 <tr><th colspan=2>Totals</th><th></th><th><? echo number_format($totalvolume,2);?></th><th colspan=2></th><th><? echo number_format($total,2);?></th></tr>
+<?php } else {?>
+<tr><th>Totals</th><th></th><th><? echo number_format($total,2);?></th></tr>
+<?php }?>
 </tfoot>
 </table>
 
 </div>
-<?php include('/home/web/fuzzwork/htdocs/bootstrap/footer.php'); ?>
+<?php if (!$compact){include('/home/web/fuzzwork/htdocs/bootstrap/footer.php');} ?>
 
 </body>
 </html>
