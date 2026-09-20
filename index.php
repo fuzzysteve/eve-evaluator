@@ -11,10 +11,6 @@
 <body>
 <?php include('/home/web/fuzzwork/htdocs/menu/menubootstrap.php'); ?>
 <div class="container">
-<div class="alert-info alert-dismissable">
-<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-<a href="/evaluator/shipentry.php" class="alertlink">New Ship EHP calculator</a>. Paste in a ship scan, along with a ship type, and get an estimation of a Fully skilled EHP.
-</div>
 
 <p>Paste in a cargo scan, a cut and paste from your assets, inventory or a Contract, to get an evaluation. Pick a region you want, and if you want to evaluate prices based off buy or sell prices. Defaults to buy orders, from the Forge</p> 
 <p>The melt or sell uses the sell prices for the modules, and compares it against the sell prices of the materials you'd get with 100% recovery.  (experimental)</p>
