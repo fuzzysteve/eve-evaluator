@@ -238,9 +238,9 @@ $totalvolume+=$row->volume*$inventory[$row->typeid];
 </tbody>
 <tfoot>
 <?php if (!$compact){?>
-<tr><th colspan=2>Totals</th><th></th><th><? echo number_format($totalvolume,2);?></th><th colspan=2></th><th><? echo number_format($total,2);?></th></tr>
+<tr><th colspan=2>Totals</th><th></th><th><?php echo number_format($totalvolume,2);?></th><th colspan=2></th><th><?php echo number_format($total,2);?></th></tr>
 <?php } else {?>
-<tr><th>Totals</th><th></th><th><? echo number_format($total,2);?></th></tr>
+<tr><th>Totals</th><th></th><th><?php echo number_format($total,2);?></th></tr>
 <?php }?>
 </tfoot>
 </table>
