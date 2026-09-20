@@ -33,7 +33,6 @@ else
     }
     else
     {
-
         $entries=explode("\n",$ship);
     }
 }
@@ -51,12 +50,7 @@ while ($row = $stmt->fetchObject()){
 $typeidlookup[$row->typename]=$row->typeid;
 }
 
-
 $shipid=587;
-if (array_key_exists('ships',$_POST))
-{
-    $shipid=$typeidlookup[$_POST['ships']]; 
-}
 
 
 $inventory=array();
@@ -96,14 +90,7 @@ foreach ($entries as $entry)
        if(isset($typeidlookup[$matches[1]]))
        {
            $quantity=1;
-           if(isset($inventory[$typeidlookup[$matches[1]]]))
-           {
-               $inventory[$typeidlookup[$matches[1]]]+=$quantity;
-           }
-           else
-           {
-               $inventory[$typeidlookup[$matches[1]]]=$quantity;
-           }
+           $shipid=$typeidlookup[$matches[1]];
        }
     }
     else if (preg_match("/^(.*), Qty: (\d+)/",trim($entry),$matches))
@@ -156,6 +143,11 @@ foreach ($entries as $entry)
 }
 
 
+if (array_key_exists('ships',$_POST))
+{
+    $shipid=$typeidlookup[$_POST['ships']]; 
+}
+
 
 
 dogma_init_context($ctx);
@@ -199,57 +191,11 @@ foreach ($attributes as $attribute)
 <div class="col-md-12">
 <table style="width:100%;border:1">
 <th>Resist Type/HP</th><th>Hull</th><th>Armour</th><th>Shield</th></tr>
-<tr><th>Thermic</th>
-<?php 
-foreach (array(110,270,274) as $attribute)
-{
-    echo "<td>";
-    echo round((1-$attributevalues[$attribute]) * 100,2);
-    echo "</td>";
-}
-echo "</tr>\n";
-?>
-<tr><th>Kinetic</th>
-<?php
-foreach (array(109,269,273) as $attribute)
-{
-    echo "<td>";
-    echo round((1-$attributevalues[$attribute]) * 100,2);
-    echo "</td>";
-}
-echo "</tr>\n";
-?>
-<tr><th>EM</th>
-<?php
-foreach (array(113,267,271) as $attribute)
-{
-    echo "<td>";
-    echo round((1-$attributevalues[$attribute]) * 100,2);
-    echo "</td>";
-}
-echo "</tr>\n";
-?>
-<tr><th>Explosive</th>
-<?php
-foreach (array(111,268,272) as $attribute)
-{
-    echo "<td>";
-    echo round((1-$attributevalues[$attribute]) * 100,2);
-    echo "</td>";
-}
-echo "</tr>\n";
-?>
-<tr><th>Raw HP</th>
-<?php
-foreach (array(9,265,263) as $attribute)
-{
-    echo "<td>";
-    echo floor($attributevalues[$attribute]);
-    echo "</td>";
-}
-echo "</tr>\n";
-?>
-
+<tr><th>Thermic</th><td id=110></td><td id=270></td><td id=274></td></tr>
+<tr><th>Kinetic</th><td id=109></td><td id=269><td id=273></td></tr>
+<tr><th>EM</th><td id=113></td><td id=267></td><td id=271></td></tr>
+<tr><th>Explosive</th><td id=111></td><td id=268></td><td id=272></tr>
+<tr><th>Raw HP</th><td id=9></td><td id=265></td><td id=263></td></tr>
 </table>
 </div>
 <hr>
@@ -265,7 +211,7 @@ echo "</tr>\n";
 <tr><th>EM</th><th>Thermal</th><th>Kinetic</th><th>Explosive</th></tr>
 <tr><td id="profileem"></td><td id="profilethermic"></td><td id="profilekinetic"></td><td id="profileexplosive"></td></tr>
 </table>
-<select id="damageprofileselect" onchange="generateehp();">
+<label for="damageprofileselect">Damage Profile</labal><select id="damageprofileselect" onchange="generateehp();">
 <option value="0,0.417,0.583,0">Antimatter</option>
 <option value="0.625,0.375,0,0">Aurora</option>
 <option value="0,0,0.455,0.545">Barrage</option>
@@ -298,48 +244,80 @@ echo "</tr>\n";
 <option value="0,0.5,0.5,0">Spike</option>
 <option value="0,1,0,0">Thermal</option>
 <option value="0,0,0.375,0.625">Tremor</option>
-<option value="0.25,0.25,0.25,0.25">Uniform</option>
+<option value="0.25,0.25,0.25,0.25" selected>Uniform</option>
 <option value="0,0.5,0.5,0">Void</option>
+</select>
+<label for="level">Target Skill Level</label><select id="level" onchange="generateehp();">
+<option>5</option>
+<option>4</option>
+<option>3</option>
+<option>2</option>
+<option>1</option>
 </select>
 </div>
 </div>
 <div id="ship" class="col-md-6"></div>
-<script type="text/javascript">insertship('ship','<? echo $dna;?>');</script>
-</div>
-<div>
+<div class="col-md-12">
 <p>Powered by <a href="https://github.com/Artefact2/libdogma">libdogma</a> and <a href="https://github.com/Artefact2/php-dogma">PHP Dogma</a>.</p>
 <p>See <a href="https://github.com/fuzzysteve/eve-evaluator">Github</a> for the source for this.</p>
 </div>
+</div>
 <?php include('/home/web/fuzzwork/htdocs/bootstrap/footer.php'); ?>
 <script>
-attribute =new Array();
+skillattribute =new Array();
 <?php
-foreach ($attributes as $attribute)
+
+$levels=array(1,2,3,4,5);
+foreach ($levels as $level)
 {
-echo "attribute[";
-echo "$attribute";
-echo "]=";
-echo $attributevalues[$attribute];
-echo ";\n";
+    dogma_set_default_skill_level($ctx, $level);
+    $attributevalues=array();
+
+    foreach ($attributes as $attribute)
+    {
+        dogma_get_ship_attribute($ctx,$attribute,$attributevalues[$attribute]);
+    }
+
+    echo "skillattribute[".$level."]=new Array();\n";
+    foreach ($attributes as $attribute)
+    {
+        echo "skillattribute[".$level."][";
+        echo "$attribute";
+        echo "]=";
+        echo $attributevalues[$attribute];
+        echo ";\n";
+    }
 }
 ?>
 </script>
 <script>
 
-
 function generateehp(){
+    level=$("#level").val();
+    attribute=skillattribute[level];
+    damageprofile=$("#damageprofileselect").val().split(',');
 
-damageprofile=$("#damageprofileselect").val().split(',');
+    $('#hullehp').html(Math.floor(attribute[9]/((damageprofile[0]*attribute[113])+(damageprofile[1]*attribute[110])+(damageprofile[2]*attribute[109])+(damageprofile[3]*attribute[111]))));
+    $('#armorehp').html(Math.floor(attribute[265]/((damageprofile[0]*attribute[267])+(damageprofile[1]*attribute[270])+(damageprofile[2]*attribute[269])+(damageprofile[3]*attribute[268]))));
+    $('#shieldehp').html(Math.floor(attribute[263]/((damageprofile[0]*attribute[271])+(damageprofile[1]*attribute[274])+(damageprofile[2]*attribute[273])+(damageprofile[3]*attribute[272]))));
+    $('#totalehp').html(Math.floor(attribute[9]/((damageprofile[0]*attribute[113])+(damageprofile[1]*attribute[110])+(damageprofile[2]*attribute[109])+(damageprofile[3]*attribute[111])))+Math.floor(attribute[265]/((damageprofile[0]*attribute[267])+(damageprofile[1]*attribute[270])+(damageprofile[2]*attribute[269])+(damageprofile[3]*attribute[268])))+Math.floor(attribute[263]/((damageprofile[0]*attribute[271])+(damageprofile[1]*attribute[274])+(damageprofile[2]*attribute[273])+(damageprofile[3]*attribute[272]))));
 
-$('#hullehp').html(Math.floor(attribute[9]/((damageprofile[0]*attribute[113])+(damageprofile[1]*attribute[110])+(damageprofile[2]*attribute[109])+(damageprofile[3]*attribute[111]))));
-$('#armorehp').html(Math.floor(attribute[265]/((damageprofile[0]*attribute[267])+(damageprofile[1]*attribute[270])+(damageprofile[2]*attribute[269])+(damageprofile[3]*attribute[268]))));
-$('#shieldehp').html(Math.floor(attribute[263]/((damageprofile[0]*attribute[271])+(damageprofile[1]*attribute[274])+(damageprofile[2]*attribute[273])+(damageprofile[3]*attribute[272]))));
-$('#totalehp').html(Math.floor(attribute[9]/((damageprofile[0]*attribute[113])+(damageprofile[1]*attribute[110])+(damageprofile[2]*attribute[109])+(damageprofile[3]*attribute[111])))+Math.floor(attribute[265]/((damageprofile[0]*attribute[267])+(damageprofile[1]*attribute[270])+(damageprofile[2]*attribute[269])+(damageprofile[3]*attribute[268])))+Math.floor(attribute[263]/((damageprofile[0]*attribute[271])+(damageprofile[1]*attribute[274])+(damageprofile[2]*attribute[273])+(damageprofile[3]*attribute[272]))));
+    $("#profileem").html(damageprofile[0]);
+    $("#profilethermic").html(damageprofile[1]);
+    $("#profilekinetic").html(damageprofile[2]);
+    $("#profileexplosive").html(damageprofile[3]);
 
-$("#profileem").html(damageprofile[0]);
-$("#profilethermic").html(damageprofile[1]);
-$("#profilekinetic").html(damageprofile[2]);
-$("#profileexplosive").html(damageprofile[3]);
+
+    var attribs=[110,270,274,109,269,273,112,267,271,111,268,272,113];
+    for (index = 0; index < attribs.length; ++index) {
+        $("#"+attribs[index]).html(Math.floor((1-attribute[attribs[index]])*10000)/100);
+    }
+    var attribs=[9,265,263];
+    for (index = 0; index < attribs.length; ++index) {
+        $("#"+attribs[index]).html(Math.round(attribute[attribs[index]]));
+    }
+
+
 
 }
 
@@ -348,6 +326,7 @@ generateehp();
 
 
 
+insertship('ship','<? echo $dna;?>')
 
 
 </script>
