@@ -1,4 +1,4 @@
-<? require_once('db.inc.php'); ?>
+<?php require_once('db.inc.php'); ?>
 <html>
 <head>
 <title>Evaluator Tool</title>
@@ -22,7 +22,7 @@
 <textarea id="entries" name='entries' rows=20 cols=90/>
 </textarea><br />
 <select name="region">
-<?
+<?php
 $sql='select regionid,regionname from eve.mapRegions order by regionname';
 
 $stmt = $dbh->prepare($sql);
@@ -50,12 +50,12 @@ echo ">".$row->regionname.'</option>';
 <input type=submit value="Melt or Sell" onclick="this.form.action='melt.php'">
 <input type=submit value="Refine" onclick="this.form.action='refine.php'">
 <select name="percentage">
-<option value="0.5">50%</option>
-<option value="0.51">51%</option>
-<option value="0.52">52%</option>
-<option value="0.53">53%</option>
-<option value="0.54">54%</option>
-<option value="0.55">55%</option>
+<?php
+
+for ($x=0.5;$x<0.9;$x=$x+0.01) {
+print '<option value="'.$x.'">'.($x*100).'%</option>';
+}
+?>
 </select>
 </form>
 

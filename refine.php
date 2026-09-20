@@ -111,6 +111,14 @@ foreach ($entries as $entry) {
                 $inventory[$typeidlookup[$matches[1]]]=$quantity;
             }
         }
+    } elseif (preg_match("/^(.*) (\d+)$/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[1]])) {
+            if (isset($inventory[$typeidlookup[$matches[1]]])) {
+                $inventory[$typeidlookup[$matches[1]]]+=$matches[2];
+            } else {
+                $inventory[$typeidlookup[$matches[1]]]=$matches[2];
+            }
+        }
     } elseif (preg_match("/^(.*)/", trim($entry), $matches)) {
         if (isset($typeidlookup[$matches[1]])) {
             $quantity=1;
@@ -207,6 +215,7 @@ foreach ($inventory as $material => $quantity) {
         if (!isset($output[$row->materialTypeID])) {
             $output[$row->materialTypeID]=0;
         }
+
         $output[$row->materialTypeID]+=floor(floor($quantity/$row->portionSize)*$row->quantity*$percentage);
     }
 }
