@@ -10,7 +10,11 @@ if (isset($_COOKIE['compacteval'])&& $_COOKIE['compacteval']==1) {
 }
 
 if (array_key_exists('method', $_POST) && is_numeric($_POST['method']) && $_POST['method']) {
-    $buysell="buy";
+    if ($_POST['method']==2){
+        $buysell="high";
+    } else {
+        $buysell="buy";
+    }
 } else {
     $buysell="sell";
 }
@@ -77,6 +81,14 @@ foreach ($entries as $entry) {
                 $inventory[$typeidlookup[$matches[2]]]+=$matches[1];
             } else {
                 $inventory[$typeidlookup[$matches[2]]]=$matches[1];
+            }
+        }
+    } elseif (preg_match("/^(.*) \((\d+) Units?\)$/", trim($entry), $matches)) {
+        if (isset($typeidlookup[$matches[1]])) {
+            if (isset($inventory[$typeidlookup[$matches[1]]])) {
+                $inventory[$typeidlookup[$matches[1]]]+=$matches[2];
+            } else {
+                $inventory[$typeidlookup[$matches[1]]]=$matches[2];
             }
         }
     } elseif (preg_match("/^(.*)\t([\d.,]+)\t/", trim($entry), $matches)) {
@@ -217,7 +229,11 @@ $stmt->execute();
 $total=0;
 $totalvolume=0;
 while ($row = $stmt->fetchObject()) {
-    list($price, $buyprice,$selldate,$buydate)=returnpricedate($row->typeid,$region);
+    list($price, $buyprice,$selldate,$buydate,$highbuyprice)=returnpricedate($row->typeid,$region);
+    if ($buysell=='high'){
+        $price=$highbuyprice;
+        $selldate=$buydate;
+    }
     if ($buysell=='buy'){
         $price=$buyprice;
         $selldate=$buydate;
