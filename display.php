@@ -91,9 +91,12 @@ foreach ($entries as $entry) {
                 $inventory[$typeidlookup[$matches[1]]]=$matches[2];
             }
         }
-    } elseif (preg_match("/^(.*)\t([\d.,]+)\t/", trim($entry), $matches)) {
+    } elseif (preg_match("/^([^\t]+)\t([\d.,]*)(\t|$)/", trim($entry), $matches)) {
         if (isset($typeidlookup[$matches[1]])) {
             $quantity=str_replace(',', '', str_replace(',', '', $matches[2]));
+            if ($quantity==='') {
+                $quantity=1;
+            }
             if (isset($inventory[$typeidlookup[$matches[1]]])) {
                 $inventory[$typeidlookup[$matches[1]]]+=$quantity;
             } else {
@@ -144,7 +147,7 @@ foreach ($entries as $entry) {
 <html>
 <head>
 <title>Evaluator</title>
-  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 
@@ -174,7 +177,7 @@ $(document).ready(function()
             "bFilter": false,
             "bInfo": false,
             "bAutoWidth": false,
-            "aoColumns":[null,null,{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" }]
+            "aoColumns":[null,null,{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },null]
 });
     }
 );
@@ -254,7 +257,7 @@ $totalvolume+=$row->volume*$inventory[$row->typeid];
 </tbody>
 <tfoot>
 <?php if (!$compact){?>
-<tr><th colspan=2>Totals</th><th></th><th><?php echo number_format($totalvolume,2);?></th><th colspan=2></th><th><?php echo number_format($total,2);?></th></tr>
+<tr><th colspan=2>Totals</th><th></th><th><?php echo number_format($totalvolume,2);?></th><th colspan=2></th><th><?php echo number_format($total,2);?></th><th></th></tr>
 <?php } else {?>
 <tr><th>Totals</th><th></th><th><?php echo number_format($total,2);?></th></tr>
 <?php }?>

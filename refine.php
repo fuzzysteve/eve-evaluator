@@ -75,9 +75,12 @@ foreach ($entries as $entry) {
                 $inventory[$typeidlookup[$matches[2]]]=$matches[1];
             }
         }
-    } elseif (preg_match("/^(.*)\t([\d.,]+)\t/", trim($entry), $matches)) {
+    } elseif (preg_match("/^([^\t]+)\t([\d.,]*)(\t|$)/", trim($entry), $matches)) {
         if (isset($typeidlookup[$matches[1]])) {
             $quantity=str_replace(',', '', str_replace(',', '', $matches[2]));
+            if ($quantity==='') {
+                $quantity=1;
+            }
             if (isset($inventory[$typeidlookup[$matches[1]]])) {
                 $inventory[$typeidlookup[$matches[1]]]+=$quantity;
             } else {
@@ -136,7 +139,7 @@ foreach ($entries as $entry) {
 <html>
 <head>
 <title>Refinery</title>
-  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 

@@ -107,13 +107,16 @@ foreach ($entries as $entry)
            }
        }
     }
-   else if (preg_match("/^(.*)\t([\d.,]+)\t/",trim($entry),$matches))
+   else if (preg_match("/^([^\t]+)\t([\d.,]*)(\t|$)/",trim($entry),$matches))
    {
        if(isset($typeidlookup[$matches[1]]))
        {
 
 
            $quantity=str_replace(',','',str_replace(',','',$matches[2]));
+           if ($quantity==='') {
+               $quantity=1;
+           }
            if(isset($inventory[$typeidlookup[$matches[1]]]))
            {
                $inventory[$typeidlookup[$matches[1]]]+=$quantity;
@@ -208,7 +211,7 @@ foreach ($entries as $entry)
 <html>
 <head>
 <title>Evaluator</title>
-  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 
@@ -267,8 +270,11 @@ if (count($inventory)==0) {
     echo "<tr><td colspan=6>No recognised items</td></tr>";
 }
 
-// Recovery is 50% of the materials' value; portionSize (from the SDE) is the batch size per refine.
+// Recovery comes from the form's percentage dropdown; portionSize (from the SDE) is the batch size per refine.
 $recovery=0.5;
+if (array_key_exists('percentage', $_POST) && is_numeric($_POST['percentage']) && $_POST['percentage']) {
+    $recovery=$_POST['percentage'];
+}
 $melt=array();
 if (count($inventory)>0) {
     $sql='select itm.typeID,itm.materialTypeID,itm.quantity,it.portionSize from invTypeMaterials itm
@@ -290,10 +296,8 @@ if (count($inventory)>0) {
 
 foreach ($inventory as $typeid => $quantity) {
     list($price,)=returnprice($typeid,$regionid);
+    // Items with no reprocessing materials still get listed, with a zero melt value.
     $meltvalue=isset($melt[$typeid])?$melt[$typeid]:0;
-    if ($meltvalue==0 && $price==0) {
-        continue;
-    }
     $class="green";
     if ($meltvalue<$price)
     {

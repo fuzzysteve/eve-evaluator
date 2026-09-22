@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Evaluator Tool</title>
-  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
   <script src="/evaluator/jquery.cookie.js"></script>
@@ -13,7 +13,7 @@
 <div class="container">
 
 <p>Paste in a cargo scan, a cut and paste from your assets, inventory or a Contract, to get an evaluation. Pick a region you want, and if you want to evaluate prices based off buy or sell prices. Defaults to buy orders, from the Forge</p> 
-<p>The melt or sell uses the sell prices for the modules, and compares it against the sell prices of the materials you'd get with 100% recovery.  (experimental)</p>
+<p>The melt or sell uses the sell prices for the modules, and compares it against the sell prices of the materials you'd get at the reprocessing yield selected in the percentage dropdown.  (experimental)</p>
 <form method=post action='display.php'>
 <textarea id="entries" name='entries' rows=20 cols=90/>
 </textarea><br />
