@@ -224,13 +224,16 @@ $(document).ready(function()
 </thead>
 <tbody>
 <?php
+$total=0;
+$totalvolume=0;
+if (count($inventory)==0) {
+    echo "<tr><td colspan=".($compact ? 3 : 8).">No recognised items</td></tr>";
+} else {
 $sql='select typename,typeid,volume from invTypes where typeid in ('.join(",", array_keys($inventory)).') order by typename desc';
 
 $stmt = $dbh->prepare($sql);
 
 $stmt->execute();
-$total=0;
-$totalvolume=0;
 while ($row = $stmt->fetchObject()) {
     list($price, $buyprice,$selldate,$buydate,$highbuyprice)=returnpricedate($row->typeid,$region);
     if ($buysell=='high'){
@@ -248,6 +251,7 @@ while ($row = $stmt->fetchObject()) {
 }
 $total+=$inventory[$row->typeid]*$price;
 $totalvolume+=$row->volume*$inventory[$row->typeid];
+}
 }
 
 

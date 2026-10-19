@@ -10,12 +10,13 @@ if (isset($_COOKIE['compacteval'])&& $_COOKIE['compacteval']==1)
 $compact=1;
 }
 
-if (array_key_exists('method',$_POST) && is_numeric($_POST['method']) && $_POST['method'])
-{
-    $buysell="buy";
-}
-else
-{
+if (array_key_exists('method', $_POST) && is_numeric($_POST['method']) && $_POST['method']) {
+    if ($_POST['method']==2) {
+        $buysell="high";
+    } else {
+        $buysell="buy";
+    }
+} else {
     $buysell="sell";
 }
 
@@ -61,6 +62,19 @@ else
 
 $pricetype='redis';
 require_once($pricetype.'price.php');
+
+// Price for the method picked on the form (sell, buy or highest buy).
+function methodprice($typeid, $regionid, $buysell)
+{
+    list($sell, $buy, , , $highbuy)=returnpricedate($typeid, $regionid);
+    if ($buysell=='high') {
+        return $highbuy;
+    }
+    if ($buysell=='buy') {
+        return $buy;
+    }
+    return $sell;
+}
 
 $sql='select typename,typeid from invTypes where invTypes.published=1 and marketgroupid is not null';
 
@@ -242,6 +256,9 @@ $(document).ready(function()
             "bAutoWidth": false,
             "aoColumns":[null,null,{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" },{ "sType": "currency" }]
 });
+        $("#hidenomelt").change(function() {
+            $("#evaluation tbody tr.nomelt").toggle(!this.checked);
+        });
     }
 );
 </script>
@@ -257,8 +274,7 @@ $(document).ready(function()
 <?php if (!$compact){include('/home/web/fuzzwork/htdocs/menu/menubootstrap.php');} ?>
 <div class="container">
 
-
-
+<label><input type="checkbox" id="hidenomelt"> Hide items with no melt value</label>
 
 <table border=1 id="evaluation" class="tablesorter"  <?php if ($compact){echo 'style="width:auto !important;""';  } ?>>
 <thead>
@@ -285,7 +301,7 @@ if (count($inventory)>0) {
     $materialprice=array();
     while ($row = $stmt->fetchObject()){
         if (!isset($materialprice[$row->materialTypeID])) {
-            list($materialprice[$row->materialTypeID],)=returnprice($row->materialTypeID,$regionid);
+            $materialprice[$row->materialTypeID]=methodprice($row->materialTypeID, $regionid, $buysell);
         }
         if (!isset($melt[$row->typeID])) {
             $melt[$row->typeID]=0;
@@ -295,7 +311,7 @@ if (count($inventory)>0) {
 }
 
 foreach ($inventory as $typeid => $quantity) {
-    list($price,)=returnprice($typeid,$regionid);
+    $price=methodprice($typeid, $regionid, $buysell);
     // Items with no reprocessing materials still get listed, with a zero melt value.
     $meltvalue=isset($melt[$typeid])?$melt[$typeid]:0;
     $class="green";
@@ -303,7 +319,8 @@ foreach ($inventory as $typeid => $quantity) {
     {
         $class="red";
     }
-    echo "<tr><td>".$typeid."</td><td>".$typenamelookup[$typeid]."</td><td align=right>".number_format($quantity)."</td><td align=right>".number_format($meltvalue,2)."</td><td align=right>".number_format($price,2)."</td><td align=right class='$class'>".number_format($meltvalue-$price,2)."</td></tr>";
+    $rowclass=($meltvalue==0)?" class='nomelt'":"";
+    echo "<tr$rowclass><td>".$typeid."</td><td>".$typenamelookup[$typeid]."</td><td align=right>".number_format($quantity)."</td><td align=right>".number_format($meltvalue,2)."</td><td align=right>".number_format($price,2)."</td><td align=right class='$class'>".number_format($meltvalue-$price,2)."</td></tr>";
 }
 
 

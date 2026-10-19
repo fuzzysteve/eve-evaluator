@@ -13,7 +13,7 @@
 <div class="container">
 
 <p>Paste in a cargo scan, a cut and paste from your assets, inventory or a Contract, to get an evaluation. Pick a region you want, and if you want to evaluate prices based off buy or sell prices. Defaults to buy orders, from the Forge</p> 
-<p>The melt or sell uses the sell prices for the modules, and compares it against the sell prices of the materials you'd get at the reprocessing yield selected in the percentage dropdown.  (experimental)</p>
+<p>The melt or sell uses the selected Buy/Highest Buy/Sell prices for the modules, and compares them against the same prices for the materials you'd get at the reprocessing yield selected in the percentage dropdown.  (experimental)</p>
 <form method=post action='display.php'>
 <textarea id="entries" name='entries' rows=20 cols=90/>
 </textarea><br />
